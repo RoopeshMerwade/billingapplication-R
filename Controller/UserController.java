@@ -4,87 +4,81 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import com.billingapplication.entity.Admin;
 import com.billingapplication.entity.User;
+import com.billingapplication.exception.RecordNotFoundException;
 import com.billingapplication.repository.UserRepository;
 import com.billingapplication.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
-import jakarta.websocket.Session;
 
-@Controller
+@RestController
 public class UserController {
 	@Autowired
 	private UserService userSer;
 	@Autowired
 	private UserRepository userRepo;
 
-	@PostMapping("/createAccountant")
-	public String createAccountant(@ModelAttribute User us, HttpSession session) {
+	@PostMapping("/api/admin/createAccountant")
+	public ResponseEntity<String> createAccountant(@RequestBody User us, HttpSession session) {
 		if (session.getAttribute("adminloginsession") != null) {
-			Boolean b = userSer.existsEmail(us.getEmail());
-			if (b) {
-				session.setAttribute("emailexists", "Email already exists");
+			Boolean emailExists = userSer.existsEmail(us.getEmail());
+			if (emailExists) {
+				return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);
 			} else {
 				User newUser = userSer.createAccountant(us);
 				if (newUser != null) {
-					session.setAttribute("mess", "Account created successfully");
+					return new ResponseEntity<>("Account created successfully", HttpStatus.CREATED);
 				} else {
-					session.setAttribute("error", "Something went wrong");
+					return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
 				}
 			}
 		}
-		return "redirect:/welcome";
-	}
-	@GetMapping("/updateAccountant/{id}")
-	public String updateAccountant(HttpSession session, @PathVariable("id") int id, Model m, @ModelAttribute User us) {
-		if (session.getAttribute("adminloginsession") != null) {
-			Optional<User> u = userRepo.findById(id);
-			if (u.isPresent()) {
-				m.addAttribute("update", u.get());
-				return "updateAccountant";
-			}
-			session.setAttribute("error", "User not found");
-			return "redirect:/welcome";
-		}
-		return "adminlogin";
+		return new ResponseEntity<>("Unauthorized access", HttpStatus.UNAUTHORIZED);
 	}
 
-	@PostMapping("/updateAccountant")
-	public String updateAccountant(@ModelAttribute User us, HttpSession session) {
+	@PutMapping("/api/admin/updateAccountant/{id}")
+	public ResponseEntity<?> getUpdateAccountant(@PathVariable("id") int id, HttpSession session,
+			@RequestBody User us) {
 		if (session.getAttribute("adminloginsession") != null) {
-			User updateAcc = userSer.updateAccountant(us);
-			if (updateAcc != null) {
-				session.setAttribute("mess", "Accountant Details updated successfully");
-			} else {
-				session.setAttribute("error", "Not Updated");
-			}
-			return "updateAccountant";
+			us.setId(id);
+			return ResponseEntity.ok().body(userSer.updateAccountant(us));
 		}
-		return "adminlogin";
+		return new ResponseEntity<>("Unauthorized access", HttpStatus.UNAUTHORIZED);
 	}
-	@GetMapping("/displayAcc")
-	public String getAllAcc(HttpSession session,Model m,User user) {
-		if(session.getAttribute("adminloginsession")!=null) {
-			List<User> list_user=userSer.getAllAccountant(user);
-			m.addAttribute("user", list_user);
-			return "displayAcc";			
+
+	@GetMapping("/api/admin/displayAcc")
+	public ResponseEntity<?> getAllAccountants(HttpSession session) {
+		if (session.getAttribute("adminloginsession") != null) {
+			List<User> users = userSer.getAllAccountant(new User());
+			return new ResponseEntity<>(users, HttpStatus.OK);
 		}
-		return "adminlogin";
+		return new ResponseEntity<>("Unauthorized access", HttpStatus.UNAUTHORIZED);
 	}
-	@GetMapping("/deleteAcc/{id}")
-	public String deleteAcc(HttpSession session,@PathVariable("id") int id) {
-		if(session.getAttribute("adminloginsession")!=null) {
+
+	@DeleteMapping("/api/admin/deleteAcc/{id}")
+	public ResponseEntity<String> deleteAccountant(@PathVariable("id") int id, HttpSession session) {
+		if (session.getAttribute("adminloginsession") != null) {
 			userSer.deleteAccountant(id);
-			return "welcome";			
+			return new ResponseEntity<>("Accountant deleted successfully", HttpStatus.OK);
 		}
-		return "adminlogin";
+		return new ResponseEntity<>("Unauthorized access", HttpStatus.UNAUTHORIZED);
+	}
+
+	@PostMapping("/api/users/accLogin")
+	public ResponseEntity<String> loginAccountant(@RequestBody User accountantCredentials, HttpSession session) {
+		String email=accountantCredentials.getEmail();
+		String password=accountantCredentials.getPassword();
+		User user=userSer.validateAccountant(email, password);
+		if (user != null) {
+			session.setAttribute("accountantlogin", user);
+			return new ResponseEntity<>("Login successful", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>("Invalid email or password", HttpStatus.UNAUTHORIZED);
+		}
 	}
 }
