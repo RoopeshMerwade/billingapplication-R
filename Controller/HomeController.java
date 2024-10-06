@@ -1,70 +1,54 @@
 package com.billingapplication.controller;
 
-import java.security.Principal;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import com.billingapplication.entity.Admin;
-import com.billingapplication.repository.AdminRepository;
 import com.billingapplication.service.AdminService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
-@Controller
+@RestController
+@RequestMapping("/api/admin") 
 public class HomeController {
-	@Autowired
-	private AdminService adminSer;
-	@Autowired
-	private AdminRepository adminrepo;
+    @Autowired
+    private AdminService adminSer;
 
-	@GetMapping("/")
-	public String index() {
-		return "index";
-	}
+    @GetMapping("/")
+    public ResponseEntity<String> index() {
+        return ResponseEntity.ok("Welcome to the Admin API");
+    }
 
-	@GetMapping("/login")
-	public String adminLogin(HttpSession session,Model m) {
-		String errorMessage=(String) session.getAttribute("errorMess");
-		if(errorMessage!=null) {
-			m.addAttribute("error",errorMessage);
-			session.removeAttribute("errorMess");			
-		}
-		return "adminlogin";
-	}
+    @PostMapping("/login")
+    public ResponseEntity<?> loginAdminValidate(@RequestBody Admin adminCredentials, HttpSession session) {
+        String email = adminCredentials.getEmail();
+        String password = adminCredentials.getPassword();
+        Admin admin = adminSer.validateAdmin(email, password);
 
-	@PostMapping("/adminLogin")
-	public String loginAdminValidate(@RequestParam("email") String email, @RequestParam("password") String password,
-			HttpSession session) {
-		Admin admin = adminSer.validateAdmin(email, password);
-		if (admin != null) {
-			session.setAttribute("adminloginsession", admin);
-			return "redirect:/welcome";
-		} else {
-			session.setAttribute("errorMess", "Invalid email or password");
-			return "redirect:/login";
-		}
-	}
+        if (admin != null) {
+            session.setAttribute("adminloginsession", admin); 
+            return ResponseEntity.ok().body(adminSer.validateAdmin(email, password));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+        }
+    }
 
-	@GetMapping("/welcome")
-	public String welcomePage(HttpSession session, Model m) {
-		if (session.getAttribute("adminloginsession") != null) {
-			return "welcome";
-		} else {
-			return "redirect:/login";
-		}
-	}
-	@GetMapping("/logout")
-	public String logout(HttpSession session , HttpServletRequest request) {
-		session.getAttribute("adminloginsession");
-		session.removeAttribute("adminloginsession");
-		session.setAttribute("msg", "Logout Successful");
-		return "redirect:/login";
-	}
+    @GetMapping("/welcome")
+    public ResponseEntity<?> welcomePage(HttpSession session) {
+        if (session.getAttribute("adminloginsession") != null) {
+            return ResponseEntity.ok("Welcome to the Admin Dashboard!");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized access. Please log in.");
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpSession session) {
+        session.removeAttribute("adminloginsession");
+        session.setAttribute("msg", "Logout Successful");
+        return ResponseEntity.ok("Logout Successful");
+    }
 }
+
