@@ -77,6 +77,12 @@ public class UserServiceImpl implements UserService{
 		}
 		return null;
 	}
+	@PostMapping("/api/users/logout")
+   	public ResponseEntity<String> logout(HttpSession session) {
+        session.removeAttribute("accountantlogin");
+        session.setAttribute("msg", "Logout Successful");
+        return ResponseEntity.ok("Logout Successful");
+    }
 
 	
 
