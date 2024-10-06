@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.billingapplication.entity.User;
+import com.billingapplication.exception.RecordNotFoundException;
 import com.billingapplication.repository.UserRepository;
 @Service
 public class UserServiceImpl implements UserService{
@@ -35,9 +36,10 @@ public class UserServiceImpl implements UserService{
 			us.setMobileNumber(user.getMobileNumber());
 			us.setRole("ROLE_ACCOUNTANT");
 			return userRepo.save(us);
-			
 		}
-		return null;
+		else {
+            throw new RecordNotFoundException("Accountant with id " + user.getId() + " not found");
+        }
 	}
 
 	@Override
@@ -52,6 +54,18 @@ public class UserServiceImpl implements UserService{
 			User us=u.get();
 			userRepo.delete(us);
 		}
+		else {
+			throw new RecordNotFoundException("Accountant with id " + id + " not found");
+		}
+	}
+
+	@Override
+	public User validateAccountant(String email,String password) {
+		User u=userRepo.findByEmail(email);
+		if(u!=null && u.getPassword().equals(password)) {
+			return u;
+		}
+		return null;
 	}
 
 }
