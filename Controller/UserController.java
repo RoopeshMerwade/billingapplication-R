@@ -1,89 +1,102 @@
-package com.billingapplication.service;
+package com.billingapplication.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import com.billingapplication.entity.User;
-import com.billingapplication.exception.RecordNotFoundException;
 import com.billingapplication.repository.UserRepository;
-@Service
-public class UserServiceImpl implements UserService{
+import com.billingapplication.service.AdminService;
+import com.billingapplication.service.CustomerService;
+import com.billingapplication.service.UserService;
+
+@RestController
+public class UserController {
+	@Autowired
+	private UserService userSer;
 	@Autowired
 	private UserRepository userRepo;
-	@Override
-	public User createAccountant(User user) {
-		user.setRole("ROLE_ACCOUNTANT");
-		User newAcc=userRepo.save(user);
-		return newAcc;
+	@Autowired
+	private CustomerService cusSer;
+	@Autowired
+	private AdminService adminSer;
+
+	@PostMapping("/api/admin/createAccountant")
+	public ResponseEntity<String> createAccountant(@RequestBody User us) {
+			Boolean emailExists1 = userSer.existsEmail(us.getEmail());
+			Boolean emailExists2 = cusSer.existsEmail(us.getEmail());
+			Boolean emailExists3 = adminSer.existsEmail(us.getEmail());
+			Long mobile = us.getMobileNumber();
+			if (emailExists1) {
+				return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);
+			} else if (emailExists2) {
+				return new ResponseEntity<>("Email already exists in customer database", HttpStatus.CONFLICT);
+			} else if (emailExists3) {
+				return new ResponseEntity<>("Email already exists in admin database", HttpStatus.CONFLICT);
+			}
+			else {
+				User newUser = userSer.createAccountant(us);
+				if (newUser != null) {
+					return new ResponseEntity<>("Account created successfully", HttpStatus.CREATED);
+				} else {
+					return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
+				}
+			}
 	}
 
-	@Override
-	public boolean existsEmail(String email) {
-		return userRepo.existsByEmail(email);
+	@PutMapping("/api/admin/updateAccountant/{id}")
+	public ResponseEntity<?> getUpdateAccountant(@PathVariable("id") int id,
+			@RequestBody User us) {
+			Boolean emailExists1 = cusSer.existsEmail(us.getEmail());
+			Boolean emailExists2 = adminSer.existsEmail(us.getEmail());
+			Boolean emailExists3 = userSer.existsEmail(us.getEmail());
+			String email = us.getEmail();
+			if (emailExists1) {
+				return new ResponseEntity<>("Email already exists in customer database", HttpStatus.CONFLICT);
+			} else if (emailExists2) {
+				return new ResponseEntity<>("Email already exists in admin database", HttpStatus.CONFLICT);
+			}
+			else if(email.equals(userSer.getEmailById(id))){
+				us.setId(id);
+				return ResponseEntity.ok().body(userSer.updateAccountant(us));
+			}
+			else if (emailExists3) {
+				return new ResponseEntity<>("Email already exists", HttpStatus.CONFLICT);
+			} 
+			
+			us.setId(id);
+			return ResponseEntity.ok().body(userSer.updateAccountant(us));
 	}
 
-	@Override
-	public User updateAccountant(User user) {
-		Optional<User> u=userRepo.findById(user.getId());
-		if(u.isPresent()) {
-			User us=u.get();
-			us.setName(user.getName());
-			us.setCity(user.getCity());
-			us.setEmail(user.getEmail());
-			us.setMobileNumber(user.getMobileNumber());
-			us.setRole("ROLE_ACCOUNTANT");
-			return userRepo.save(us);
+	@GetMapping("/api/admin/displayAcc")
+	public ResponseEntity<?> getAllAccountants(User us) {
+			List<User> users = userSer.getAllAccountant(us);
+			return new ResponseEntity<>(users, HttpStatus.OK);
+	}
+
+	@DeleteMapping("/api/admin/deleteAcc/{id}")
+	public ResponseEntity<String> deleteAccountant(@PathVariable("id") int id) {
+			userSer.deleteAccountant(id);
+			return new ResponseEntity<>("Accountant deleted successfully", HttpStatus.OK);
+	}
+
+	@PostMapping("/api/users/accLogin")
+	public ResponseEntity<String> loginAccountant(@RequestBody User accountantCredentials) {
+		String email = accountantCredentials.getEmail();
+		String password = accountantCredentials.getPassword();
+		User user = userSer.validateAccountant(email, password);
+		if (user != null) {
+			return new ResponseEntity<>("Login successful", HttpStatus.OK);
+		} else {
+			return new ResponseEntity<>("Invalid email or password", HttpStatus.UNAUTHORIZED);
 		}
-		else {
-            throw new RecordNotFoundException("Accountant with id " + user.getId() + " not found");
-        }
 	}
-
-	@Override
-	public List<User> getAllAccountant(User user) {
-		return userRepo.findAll();
-	}
-
-	@Override
-	public void deleteAccountant(int id) {
-		Optional<User> u=userRepo.findById(id);
-		if(u.isPresent()) {
-			User us=u.get();
-			userRepo.delete(us);
-		}
-		else {
-			throw new RecordNotFoundException("Accountant with id " + id + " not found");
-		}
-	}
-
-	@Override
-	public User validateAccountant(String email,String password) {
-		User u=userRepo.findByEmail(email);
-		if(u!=null && u.getPassword().equals(password)) {
-			return u;
-		}
-		return null;
-	}
-
-	@Override
-	public String getEmailById(int id) {
-		Optional<User> u=userRepo.findById(id);
-		if(u.isPresent()) {
-			User us=u.get();
-			return us.getEmail();
-		}
-		return null;
-	}
-	@PostMapping("/api/users/logout")
-   	public ResponseEntity<String> logout(HttpSession session) {
-        session.removeAttribute("accountantlogin");
-        session.setAttribute("msg", "Logout Successful");
-        return ResponseEntity.ok("Logout Successful");
-    }
-
-	
-
+//	@PostMapping("/api/users/logout")
+//    public ResponseEntity<String> logout(HttpSession session) {
+//        session.removeAttribute("accountantlogin");
+//        session.setAttribute("msg", "Logout Successful");
+//        return ResponseEntity.ok("Logout Successful");
+//    }
 }
