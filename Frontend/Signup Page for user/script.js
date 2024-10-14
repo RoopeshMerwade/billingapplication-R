@@ -1,4 +1,3 @@
-
 const signupForm = document.getElementsByClassName("signup-form")[0];
 const email = document.getElementById("email");
 const password = document.getElementById("password"); 
@@ -30,10 +29,47 @@ const passwordStrength = function () {
 // inspired from geeks from geeks
 password.addEventListener('keyup', passwordStrength);
 
-signupForm.addEventListener("submit", (e) => {
+signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  // before submit
+  
+  const data = {
+    email: email.value,
+    password: password.value,
+  };
+
+  try {
+    const response = await fetch('http://localhost:8080/api/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (response.ok) {
+      // Handle successful response
+      alert('Signup successful');
+    } else {
+      // Handle error response
+      alert('Signup failed');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('An error occurred');
+  }
 });
+
+// check password strength
+function onChange() {
+  if (confirmPassword.value === password.value) {
+    confirmPassword.setCustomValidity("");
+  } else {
+    confirmPassword.setCustomValidity("Passwords do not match!");
+  }
+}
+
+password.addEventListener("change", onChange);
+confirmPassword.addEventListener("change", onChange);
 
 // check password strength
 function onChange() {
