@@ -71,15 +71,5 @@ function onChange() {
 password.addEventListener("change", onChange);
 confirmPassword.addEventListener("change", onChange);
 
-// check password strength
-function onChange() {
-  if (confirmPassword.value === password.value) {
-    confirmPassword.setCustomValidity("");
-  } else {
-    confirmPassword.setCustomValidity("Passwords do not match!");
-  }
-}
 
-password.addEventListener("change", onChange);
-confirmPassword.addEventListener("change", onChange);
 
