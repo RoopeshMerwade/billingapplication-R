@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import axios from "axios"; // Import axios
+import axios from "axios"; 
 import Header from "../components/common/Header";
 import StatCard from "../components/common/StatCard";
 import { CreditCard, DollarSign, ShoppingCart, TrendingUp } from "lucide-react";
@@ -23,7 +23,7 @@ const SalesPage = () => {
                 const todaysSaleResponse = await axios.get("http://localhost:8094/analysis/todaysSale");
                 const weekSalesResponse = await axios.get("http://localhost:8094/analysis/weekSales");
 
-                // Update state with the fetched values
+                
                 setSalesStats({
                     totalRevenue: `₹${totalRevenueResponse.data}`,
                     averageOrderValue: `₹${avgOrderValueResponse.data.toFixed(2)}`,
