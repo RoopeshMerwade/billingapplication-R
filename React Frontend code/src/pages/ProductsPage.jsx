@@ -14,8 +14,8 @@ const ProductsPage = () => {
     inventoryValue: 0,
     totalRevenue: 0,
   });
-  const [isPopupOpen, setIsPopupOpen] = useState(false); // State to manage popup visibility
-  const [selectedProduct, setSelectedProduct] = useState(null); // State to hold selected product details
+  const [isPopupOpen, setIsPopupOpen] = useState(false); 
+  const [selectedProduct, setSelectedProduct] = useState(null); 
   const [showAddProductsForm, setShowAddProductsForm] = useState(false);
   const [newProducts, setNewProducts] = useState({
     prodName: "",
@@ -29,9 +29,7 @@ const ProductsPage = () => {
     productCategory: "",
     price: "",
   });
-  const [products, setProducts] = useState([]); // State for storing products
-
-  // Fetch data from backend
+  const [products, setProducts] = useState([]); 
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -68,14 +66,12 @@ const ProductsPage = () => {
     };
 
     fetchStats();
-    fetchProducts(); // Fetch products on initial load
+    fetchProducts(); 
   }, []);
 
   const handleAddProductClick = () => {
-    setShowAddProductsForm(true); // Corrected state setter
+    setShowAddProductsForm(true); 
   };
-
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -89,31 +85,28 @@ const ProductsPage = () => {
     }));
   };
 
-  // Open popup form with selected product details
+  
   const handleEditClick = (product) => {
-    setSelectedProduct(product); // Set the selected product
+    setSelectedProduct(product); 
     setFormData({
       prodName: product.prodName,
       prodDescription: product.prodDescription,
       productCategory: product.productCategory,
       price: product.price,
     });
-    setIsPopupOpen(true); // Show popup
+    setIsPopupOpen(true); 
   };
 
-  // Close popup form
   const handleClosePopup = () => {
     setIsPopupOpen(false);
     setSelectedProduct(null);
   };
 
-  // Submit updated product data
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await axios.put(`http://localhost:8094/api/admin/updateProduct/${selectedProduct.id}`, formData);
       handleClosePopup();
-      // Refresh product data after update
       const response = await axios.get("http://localhost:8094/api/admin/viewallproducts");
       setProducts(response.data);
     } catch (error) {
@@ -124,11 +117,10 @@ const ProductsPage = () => {
   const handleSaveProduct = async () => {
     try {
       await axios.post("http://localhost:8094/api/admin/addProducts", newProducts);
-      // alert("Product added successfully!");
       const response = await axios.get("http://localhost:8094/api/admin/viewallproducts");
-      setProducts(response.data); // Update products state with the fetched data
-      setShowAddProductsForm(false); // Close the add products form
-      setNewProducts({ prodName: "", price: "", prodDescription: "", productCategory: "" }); // Reset the new product state
+      setProducts(response.data); 
+      setShowAddProductsForm(false); 
+      setNewProducts({ prodName: "", price: "", prodDescription: "", productCategory: "" }); 
     } catch (error) {
       console.error("There was an error adding the product!", error);
       alert("There was an error adding the product! Please try again.");
@@ -140,7 +132,6 @@ const ProductsPage = () => {
       <Header title="Products" />
 
       <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
-        {/* STATS */}
         <motion.div
           className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8"
           initial={{ opacity: 0, y: 20 }}
@@ -153,7 +144,7 @@ const ProductsPage = () => {
           <StatCard name="Total Revenue" icon={DollarSign} value={`₹${stats.totalRevenue || 0}`} color="#EF4444" />
         </motion.div>
 
-        {/* Add Product Button */}
+        
         <button
           onClick={handleAddProductClick}
           className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4"
@@ -161,15 +152,15 @@ const ProductsPage = () => {
           Add Product
         </button>
 
-        <ProductsTable products={products} onEditClick={handleEditClick} /> {/* Pass products and edit handler to the table */}
+        <ProductsTable products={products} onEditClick={handleEditClick} /> 
 
-        {/* CHARTS */}
+        
         <div className="grid grid-col-1 lg gap-8">
           <CategoryDistributionChart />
         </div>
       </main>
 
-      {/* Popup form for updating product */}
+      
       {isPopupOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-md shadow-lg">
@@ -240,7 +231,7 @@ const ProductsPage = () => {
         </div>
       )}
 
-      {/* Form to add new product */}
+      
       {showAddProductsForm && (
         <motion.div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
