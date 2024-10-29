@@ -1,6 +1,8 @@
 package com.billingapplication.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -61,4 +63,9 @@ public class ProductController {
 			return ResponseEntity.ok(pro);
 		}
 	}
+	@GetMapping("/chart/category-distribution")
+	public ResponseEntity<Map<String, Integer>> getCategoryDistribution() {
+		Map<String, Integer> categoryDistribution = prodSer.getCategoryDistribution();
+        return ResponseEntity.ok(categoryDistribution);
+    }
 }
