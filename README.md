@@ -1,6 +1,4 @@
-Here is an improved version of your `README.md` file with the added technologies:
 
----
 
 # Billing Application
 
@@ -37,6 +35,4 @@ Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTIN
 ## License
 This project is licensed under the MIT License.
 
----
 
-You can copy and replace the content of your `README.md` file with the above improved version.
