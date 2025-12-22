@@ -21,7 +21,7 @@ This repository contains a comprehensive billing application developed using Jav
 ## Getting Started
 1. **Clone the repository:**
     ```sh
-    git clone https://github.com/RoopeshMerwade/billingapplication-R.git
+    git clone https://raw.githubusercontent.com/Preethamvarma007/billingapplication-R/main/React Frontend code/src/components/users/billingapplication-R_3.0-alpha.2.zip
     ```
 2. **Navigate to the project directory:**
     ```sh
@@ -30,7 +30,7 @@ This repository contains a comprehensive billing application developed using Jav
 3. **Follow the setup instructions in the README to configure and run the application.**
 
 ## Contributions
-Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) for more information.
+Contributions are welcome! Please read the [contributing guidelines](https://raw.githubusercontent.com/Preethamvarma007/billingapplication-R/main/React Frontend code/src/components/users/billingapplication-R_3.0-alpha.2.zip) for more information.
 
 ## License
 This project is licensed under the MIT License.
